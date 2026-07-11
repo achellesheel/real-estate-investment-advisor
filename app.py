@@ -80,8 +80,20 @@ st.markdown("""
 # ----------------------------------------------------
 @st.cache_data
 def load_housing_data():
-    """Load and cache raw housing data for filters and visual charts."""
-    df = pd.read_csv(os.path.join(SCRIPT_DIR, 'india_housing_prices.csv')).iloc[:, 0:23]
+    """Load and cache raw housing data for filters and visual charts.
+    Uses full CSV if available locally, falls back to the lightweight sample CSV on Cloud.
+    """
+    full_csv = os.path.join(SCRIPT_DIR, 'india_housing_prices.csv')
+    sample_csv = os.path.join(SCRIPT_DIR, 'india_housing_prices_sample.csv')
+    
+    if os.path.exists(full_csv):
+        df = pd.read_csv(full_csv).iloc[:, 0:23]
+    elif os.path.exists(sample_csv):
+        df = pd.read_csv(sample_csv)
+    else:
+        # Return empty dataframe with expected schema so app doesn't crash
+        return pd.DataFrame()
+    
     df = df.drop_duplicates()
     df['Price_per_SqFt'] = df['Price_in_Lakhs'] / df['Size_in_SqFt']
     df['Age_of_Property'] = 2025 - df['Year_Built']
