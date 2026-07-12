@@ -224,21 +224,22 @@ elif menu == "🔮 Property Predictor":
     st.title("🔮 Real Estate Evaluator & Future Price Predictor")
     st.markdown("Enter property details below to predict investment health and forecast pricing appreciation.")
 
-    # Form layout
+    # ── Cascaded dropdowns OUTSIDE the form so they react immediately ──
+    st.subheader("📋 Property Specification Details")
+    loc_col1, loc_col2, loc_col3 = st.columns(3)
+    with loc_col1:
+        state = st.selectbox("State", options=sorted(df_raw['State'].dropna().unique()), key="sel_state")
+    with loc_col2:
+        available_cities = sorted(df_raw[df_raw['State'] == state]['City'].dropna().unique())
+        city = st.selectbox("City", options=available_cities, key="sel_city")
+    with loc_col3:
+        available_localities = sorted(df_raw[df_raw['City'] == city]['Locality'].dropna().unique())
+        locality = st.selectbox("Locality", options=available_localities if available_localities else ["N/A"], key="sel_locality")
+
+    # ── Rest of the form ──
     with st.form("property_form"):
-        st.subheader("📋 Property Specification Details")
-        
         col1, col2, col3 = st.columns(3)
         with col1:
-            state = st.selectbox("State", options=sorted(df_raw['State'].dropna().unique()))
-            # Filter cities dynamically based on State
-            available_cities = sorted(df_raw[df_raw['State'] == state]['City'].dropna().unique())
-            city = st.selectbox("City", options=available_cities)
-            
-            # Filter localities dynamically based on City
-            available_localities = sorted(df_raw[df_raw['City'] == city]['Locality'].dropna().unique())
-            locality = st.selectbox("Locality", options=available_localities)
-            
             property_type = st.selectbox("Property Type", ["Apartment", "Independent House", "Villa"])
             bhk = st.slider("BHK Config", 1, 5, 3)
 
