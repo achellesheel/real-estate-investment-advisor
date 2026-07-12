@@ -379,7 +379,14 @@ elif menu == "🔮 Property Predictor":
             st.markdown("### 📋 Rule-Based Investment Benchmarks:")
             st.write(f"- **Price vs. City Median Price**: Current price (₹{price:.1f}L) vs. City Median (₹{median_city_price:.1f}L) ➔ " + ("✅ Below Median (Favorable)" if price <= median_city_price else "❌ Above Median"))
             st.write(f"- **Price/SqFt vs. City Median Price/SqFt**: Unit price (₹{price_per_sqft*100000:.0f}) vs. City Median (₹{median_city_sqft*100000:.0f}) ➔ " + ("✅ Cheaper per SqFt" if price_per_sqft < median_city_sqft else "❌ More Expensive per SqFt"))
-            st.write(f"- **Multi-factor Score**: BHK ({bhk} BHK) and Amenities ({len(amenities)} selected) ➔ " + ("✅ Premium layout (>3 BHK & >=2 amenities)" if bhk >= 3 and len(amenities) >= 2 else "⚠️ Standard configuration"))
+            # Multi-factor 3-tier benchmark
+            if bhk >= 3 and len(amenities) >= 2:
+                multi_label = "✅ Premium layout (≥3 BHK & ≥2 amenities)"
+            elif bhk >= 2 or len(amenities) >= 1:
+                multi_label = "⚠️ Standard configuration"
+            else:
+                multi_label = "❌ Minimal layout — low appeal"
+            st.write(f"- **Multi-factor Score**: BHK ({bhk} BHK) and Amenities ({len(amenities)} selected) ➔ {multi_label}")
 
         # Regression valuation display
         with res_col2:
@@ -397,8 +404,11 @@ elif menu == "🔮 Property Predictor":
             appreciation_rate -= 0.01 * (1 if age_of_property >= 20 else 0)
             formula_price = price * ((1 + appreciation_rate) ** 5)
             
-            # CAGR
-            cagr = ((pred_future_price / price) ** (1/5) - 1) * 100
+            # CAGR — guard against negative/NaN predictions
+            if pred_future_price > 0 and price > 0:
+                cagr = ((pred_future_price / price) ** (1/5) - 1) * 100
+            else:
+                cagr = 0.0
             
             st.metric("Estimated Price in 5 Years (ML Model)", f"₹{pred_future_price:.2f} Lakhs", f"CAGR: {cagr:.2f}%")
             
